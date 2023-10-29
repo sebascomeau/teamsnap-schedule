@@ -11,8 +11,8 @@ export const getTeam = async (teamSnapClientId: string, id: number) => {
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items
-      .map(({ data }) => toTeamDTO(data))
+    jsonResponse.collection.items
+      ?.map(({ data }) => toTeamDTO(data))
       .find((o) => true) ?? null
   );
 };
@@ -37,7 +37,7 @@ export const searchTeams = async (
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items.map(({ data }) => toTeamDTO(data)) ?? []
+    jsonResponse.collection.items?.map(({ data }) => toTeamDTO(data)) ?? []
   );
 };
 
@@ -57,6 +57,6 @@ export const searchTeamsByDivisionId = async (
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items.map(({ data }) => toTeamDTO(data)) ?? []
+    jsonResponse.collection.items?.map(({ data }) => toTeamDTO(data)) ?? []
   );
 };

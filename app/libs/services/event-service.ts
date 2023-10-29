@@ -1,5 +1,5 @@
 import { toEventDTO } from '../mappers/event-mapper';
-import type { ApiResponse } from './types';
+import type { ApiResponse, EventDTO } from './types';
 
 export const getEvent = async (teamSnapClientId: string, id: number) => {
   const response = await fetch(`https://api.teamsnap.com/v3/events/${id}`, {
@@ -11,8 +11,8 @@ export const getEvent = async (teamSnapClientId: string, id: number) => {
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items
-      .map(({ data }) => toEventDTO(data))
+    jsonResponse.collection.items
+      ?.map(({ data }) => toEventDTO(data))
       .find((o) => true) ?? null
   );
 };
@@ -40,7 +40,11 @@ export const searchEvents = async (
   );
 
   const jsonResponse = (await response.json()) as ApiResponse;
+  console.debug(jsonResponse);
   return (
-    jsonResponse.collection?.items.map(({ data }) => toEventDTO(data)) ?? []
+    jsonResponse.collection.items?.map(({ data }) => toEventDTO(data)) ?? []
   );
 };
+
+export const isGameEvent = (event: EventDTO) =>
+  (event.name?.match(/ vs /i) ?? false) || (event.name?.match(/ @ /i) ?? false);

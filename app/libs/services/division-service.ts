@@ -11,8 +11,8 @@ export const getDivision = async (teamSnapClientId: string, id: number) => {
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items
-      .map(({ data }) => toDivisionDTO(data))
+    jsonResponse.collection.items
+      ?.map(({ data }) => toDivisionDTO(data))
       .find((o) => true) ?? null
   );
 };
@@ -30,6 +30,6 @@ export const getDivisionTree = async (teamSnapClientId: string, id: number) => {
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items.map(({ data }) => toDivisionDTO(data)) ?? []
+    jsonResponse.collection.items?.map(({ data }) => toDivisionDTO(data)) ?? []
   );
 };

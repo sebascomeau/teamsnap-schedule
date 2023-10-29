@@ -17,8 +17,8 @@ export const getDivisionLocation = async (
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items
-      .map(({ data }) => toDivisionLocationDTO(data))
+    jsonResponse.collection.items
+      ?.map(({ data }) => toDivisionLocationDTO(data))
       .find((o) => true) ?? null
   );
 };
@@ -43,7 +43,7 @@ export const searchDivisionLocations = async (
 
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
-    jsonResponse.collection?.items.map(({ data }) =>
+    jsonResponse.collection.items?.map(({ data }) =>
       toDivisionLocationDTO(data)
     ) ?? []
   );

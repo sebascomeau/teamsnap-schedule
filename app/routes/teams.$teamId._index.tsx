@@ -1,12 +1,25 @@
-import { json } from '@remix-run/node';
+import { type LoaderFunctionArgs, json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
 import { Fragment } from 'react';
+import { GameTag } from '~/components/GameTag';
+import { GoogleMapLink } from '~/components/GoogleMapLink';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
-import { searchEvents } from '~/libs/services/event-service';
-import { searchTeams } from '~/libs/services/team-service';
+import { isGameEvent, searchEvents } from '~/libs/services/event-service';
+import { getTeam, searchTeams } from '~/libs/services/team-service';
 
-export const loader = async () => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
+  const teamId = Number.parseInt(params.teamId as string);
+
+  if (isNaN(teamId)) {
+    throw new Response('Not Found', { status: 404 });
+  }
+
+  const team = await getTeam(teamSnapClientId, teamId);
+
+  if (team === null) {
+    throw new Response('Not Found', { status: 404 });
+  }
 
   // Get today's date
   const today = new Date();
@@ -15,7 +28,7 @@ export const loader = async () => {
   today.setHours(0, 0, 0, 0);
 
   const events = await searchEvents(teamSnapClientId, {
-    teamIds: [9019049],
+    teamIds: [team.id as number],
     startedAfter: today,
   });
 
@@ -36,8 +49,9 @@ export const loader = async () => {
   const teams = await searchTeams(teamSnapClientId, { ids: teamIds });
 
   return json({
-    events,
     divisionLocations,
+    events,
+    team,
     teams,
   });
 };
@@ -45,14 +59,13 @@ export const loader = async () => {
 export default function Events() {
   const data = useLoaderData<typeof loader>();
   return (
-    <div className="container">
+    <div className="container mx-auto px-4">
       <div className="px-4 sm:px-0">
         <h1 className="text-lg font-semibold leading-7 text-gray-900">
-          Events
+          {data.team.name} - Teams Events
         </h1>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
-          Upcoming of hockey events for:{' '}
-          <strong>{data.teams.map(({ name }) => name).join(', ')}</strong>
+          Upcoming of hockey events
         </p>
       </div>
       <div className="my-6 border-t border-gray-100"></div>
@@ -86,21 +99,33 @@ export default function Events() {
                 <div className="md:text-xs">
                   {startDate?.toLocaleString('en-CA', {
                     hour: '2-digit',
+                    minute: '2-digit',
                     timeZone: event.time_zone_iana_name ?? undefined,
                   })}
                 </div>
               </div>
               <div className="p-4 font-normal text-sm text-gray-800 md:w-3/4">
                 <h2 className="text-base font-semibold leading-7 text-gray-900">
-                  {event.name}
+                  {event.name} {isGameEvent(event) && <GameTag />}
                 </h2>
                 <p>{team?.name}</p>
                 {divisionLocation && (
-                  <div className="mt-4 text-gray-700">
-                    <strong>{divisionLocation.name}</strong>
-                    <br />
-                    {divisionLocation.address}
-                  </div>
+                  <>
+                    <p className="mt-4 text-gray-700">
+                      <strong>{divisionLocation.name}</strong>
+                      {divisionLocation.address && (
+                        <>
+                          <br />
+                          {divisionLocation.address}
+                        </>
+                      )}
+                    </p>
+                    {divisionLocation.address && (
+                      <div className="mt-2">
+                        <GoogleMapLink address={divisionLocation.address} />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>

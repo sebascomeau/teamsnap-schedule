@@ -22,7 +22,7 @@ export const loader = async () => {
 export default function Events() {
   const data = useLoaderData<typeof loader>();
   return (
-    <div className="container">
+    <div className="container mx-auto px-4">
       <div className="px-4 sm:px-0">
         <h1 className="text-xl font-semibold leading-7 text-gray-900">
           Division - {data.division?.name}

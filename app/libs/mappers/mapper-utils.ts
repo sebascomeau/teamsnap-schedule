@@ -5,4 +5,4 @@ export interface Data {
 }
 
 export const tryGetDataValue = <T>(data: Data[], name: string) =>
-  data.find((data) => data.name === name)?.value as T | undefined;
+  data.find((data) => data.name === name)?.value as T | undefined | null;

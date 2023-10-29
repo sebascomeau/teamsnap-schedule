@@ -12,39 +12,50 @@ export interface ApiResponse {
   };
 }
 
+export interface DivisionDTO {
+  id?: number | null;
+  persistent_uuid?: number | null;
+  formatted_persistent_uuid?: string | null;
+  parent_id?: number | null;
+  name?: string | null;
+  season_name?: string | null;
+  is_archived?: boolean | null;
+  time_zone_iana_name?: string | null;
+}
+
 export interface DivisionLocationDTO {
-  id?: number;
-  type?: string;
-  address?: string;
-  name?: string;
-  notes?: string;
-  phone?: string;
-  division_id?: number;
-  url?: string;
+  id?: number | null;
+  type?: string | null;
+  address?: string | null;
+  name?: string | null;
+  notes?: string | null;
+  phone?: string | null;
+  division_id?: number | null;
+  url?: string | null;
 }
 
 export interface EventDTO {
-  id?: number;
-  division_location_id?: number;
-  is_canceled?: boolean;
-  is_game?: boolean;
-  is_tbd?: boolean;
-  location_id?: number;
-  name?: string;
-  opponent_id?: number;
-  points_for_opponent?: number;
-  points_for_team?: number;
-  start_date?: string;
-  team_id?: number;
-  time_zone_iana_name?: string;
+  id?: number | null;
+  division_location_id?: number | null;
+  is_canceled?: boolean | null;
+  is_game?: boolean | null;
+  is_tbd?: boolean | null;
+  location_id?: number | null;
+  name?: string | null;
+  opponent_id?: number | null;
+  points_for_opponent?: number | null;
+  points_for_team?: number | null;
+  start_date?: string | null;
+  team_id?: number | null;
+  time_zone_iana_name?: string | null;
 }
 
 export interface TeamDTO {
-  id?: number;
-  division_name?: string;
-  division_id?: number;
-  is_retired?: boolean;
-  name?: string;
-  season_name?: string;
-  time_zone_iana_name?: number;
+  id?: number | null;
+  division_name?: string | null;
+  division_id?: number | null;
+  is_retired?: boolean | null;
+  name?: string | null;
+  season_name?: string | null;
+  time_zone_iana_name?: number | null;
 }

@@ -40,7 +40,6 @@ export const searchEvents = async (
   );
 
   const jsonResponse = (await response.json()) as ApiResponse;
-  console.debug(jsonResponse);
   return (
     jsonResponse.collection.items?.map(({ data }) => toEventDTO(data)) ?? []
   );

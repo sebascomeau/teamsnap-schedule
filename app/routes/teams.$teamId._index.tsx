@@ -1,11 +1,13 @@
 import { type LoaderFunctionArgs, json } from '@remix-run/node';
 import { useLoaderData } from '@remix-run/react';
+import { parseISO } from 'date-fns';
 import { Fragment } from 'react';
 import { GameTag } from '~/components/GameTag';
 import { GoogleMapLink } from '~/components/GoogleMapLink';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
 import { isGameEvent, searchEvents } from '~/libs/services/event-service';
 import { getTeam, searchTeams } from '~/libs/services/team-service';
+import { convertUTCDateStringToTimeZone } from '~/libs/utils/date-utils';
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
@@ -71,7 +73,12 @@ export default function Events() {
       <div className="my-6 border-t border-gray-100"></div>
       {data.events.map((event) => {
         const startDate = event.start_date
-          ? new Date(event.start_date)
+          ? event.time_zone_iana_name
+            ? convertUTCDateStringToTimeZone(
+                event.start_date,
+                event.time_zone_iana_name
+              )
+            : parseISO(event.start_date)
           : undefined;
         const divisionLocation = data.divisionLocations.find(
           ({ id }) => id === event.division_location_id
@@ -85,7 +92,6 @@ export default function Events() {
                 <div className="md:text-xl">
                   {startDate?.toLocaleString('en-CA', {
                     weekday: 'long',
-                    timeZone: event.time_zone_iana_name ?? undefined,
                   })}
                 </div>
                 <div className="md:text-sm">
@@ -93,14 +99,12 @@ export default function Events() {
                     month: 'short',
                     day: 'numeric',
                     year: 'numeric',
-                    timeZone: event.time_zone_iana_name ?? undefined,
                   })}
                 </div>
                 <div className="md:text-xs">
                   {startDate?.toLocaleString('en-CA', {
                     hour: '2-digit',
                     minute: '2-digit',
-                    timeZone: event.time_zone_iana_name ?? undefined,
                   })}
                 </div>
               </div>

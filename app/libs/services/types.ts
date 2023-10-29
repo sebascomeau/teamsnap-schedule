@@ -57,5 +57,5 @@ export interface TeamDTO {
   is_retired?: boolean | null;
   name?: string | null;
   season_name?: string | null;
-  time_zone_iana_name?: number | null;
+  time_zone_iana_name?: string | null;
 }

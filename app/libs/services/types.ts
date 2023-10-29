@@ -13,7 +13,7 @@ export interface ApiResponse {
 }
 
 export interface DivisionDTO {
-  id: number | null;
+  id: number;
   persistent_uuid?: number | null;
   formatted_persistent_uuid?: string | null;
   parent_id?: number | null;
@@ -24,7 +24,7 @@ export interface DivisionDTO {
 }
 
 export interface DivisionLocationDTO {
-  id: number | null;
+  id: number;
   type?: string | null;
   address?: string | null;
   name?: string | null;
@@ -35,7 +35,7 @@ export interface DivisionLocationDTO {
 }
 
 export interface EventDTO {
-  id: number | null;
+  id: number;
   division_location_id?: number | null;
   is_canceled?: boolean | null;
   is_game?: boolean | null;
@@ -51,7 +51,7 @@ export interface EventDTO {
 }
 
 export interface TeamDTO {
-  id: number | null;
+  id: number;
   division_name?: string | null;
   division_id?: number | null;
   is_retired?: boolean | null;

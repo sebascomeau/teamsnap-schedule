@@ -2,7 +2,7 @@ import type { ApiItemsData, EventDTO } from '../services/types';
 import { tryGetDataValue } from './mapper-utils';
 
 export const toEventDTO = (data: ApiItemsData[]): EventDTO => ({
-  id: tryGetDataValue(data, 'id'),
+  id: tryGetDataValue(data, 'id') as number,
   division_location_id: tryGetDataValue(data, 'division_location_id'),
   is_canceled: tryGetDataValue(data, 'is_canceled'),
   is_game: tryGetDataValue(data, 'is_game'),

@@ -2,7 +2,7 @@ import type { ApiItemsData, DivisionDTO } from '../services/types';
 import { tryGetDataValue } from './mapper-utils';
 
 export const toDivisionDTO = (data: ApiItemsData[]): DivisionDTO => ({
-  id: tryGetDataValue(data, 'id'),
+  id: tryGetDataValue(data, 'id') as number,
   persistent_uuid: tryGetDataValue(data, 'id'),
   formatted_persistent_uuid: tryGetDataValue(data, 'formatted_persistent_uuid'),
   parent_id: tryGetDataValue(data, 'parent_id'),

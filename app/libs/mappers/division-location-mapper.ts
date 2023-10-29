@@ -4,7 +4,7 @@ import { tryGetDataValue } from './mapper-utils';
 export const toDivisionLocationDTO = (
   data: ApiItemsData[]
 ): DivisionLocationDTO => ({
-  id: tryGetDataValue(data, 'id'),
+  id: tryGetDataValue(data, 'id') as number,
   type: tryGetDataValue(data, 'type'),
   address: tryGetDataValue(data, 'address'),
   name: tryGetDataValue(data, 'name'),

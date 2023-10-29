@@ -2,7 +2,7 @@ import type { ApiItemsData, TeamDTO } from '../services/types';
 import { tryGetDataValue } from './mapper-utils';
 
 export const toTeamDTO = (data: ApiItemsData[]): TeamDTO => ({
-  id: tryGetDataValue(data, 'id'),
+  id: tryGetDataValue(data, 'id') as number,
   division_name: tryGetDataValue(data, 'division_name'),
   division_id: tryGetDataValue(data, 'division_id'),
   is_retired: tryGetDataValue(data, 'is_retired'),

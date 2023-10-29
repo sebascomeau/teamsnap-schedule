@@ -6,6 +6,7 @@ export const GoogleMapLink = ({ address }: GoogleMapLinkProps) => (
   <a
     className="inline-flex items-center space-x-1 text-blue-600 dark:text-blue-500 hover:underline"
     href={`https://www.google.com/maps?q=${encodeURIComponent(address)}`}
+    target="_blank" rel="noreferrer"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"

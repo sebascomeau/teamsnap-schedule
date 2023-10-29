@@ -9,6 +9,10 @@ export const getEvent = async (teamSnapClientId: string, id: number) => {
     ],
   });
 
+  if (!response.ok) {
+    return null;
+  }
+
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
     jsonResponse.collection.items
@@ -46,4 +50,6 @@ export const searchEvents = async (
 };
 
 export const isGameEvent = (event: EventDTO) =>
-  (event.name?.match(/ vs /i) ?? false) || (event.name?.match(/ @ /i) ?? false);
+  event?.is_game === true ||
+  (event.name?.match(/ vs /i) ?? false) ||
+  (event.name?.match(/ @ /i) ?? false);

@@ -15,6 +15,10 @@ export const getDivisionLocation = async (
     }
   );
 
+  if (!response.ok) {
+    return null;
+  }
+
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
     jsonResponse.collection.items

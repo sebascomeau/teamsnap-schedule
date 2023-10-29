@@ -6,21 +6,46 @@ import { GameTag } from '~/components/GameTag';
 import { GoogleMapLink } from '~/components/GoogleMapLink';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
 import { isGameEvent, searchEvents } from '~/libs/services/event-service';
-import { getTeam, searchTeams } from '~/libs/services/team-service';
+import {
+  getTeam,
+  searchTeams,
+  searchTeamsByDivisionId,
+} from '~/libs/services/team-service';
+import type { TeamDTO } from '~/libs/services/types';
 import { convertUTCDateStringToTimeZone } from '~/libs/utils/date-utils';
+
+const divisionId = 760038;
+const teamAll = 'all';
+
+const getQueryTeamIds = async (
+  teamSnapClientId: string,
+  teamId: typeof teamAll | number
+) => {
+  return teamId === teamAll
+    ? (await searchTeamsByDivisionId(teamSnapClientId, divisionId)).map(
+        ({ id }) => id
+      )
+    : [teamId];
+};
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
-  const teamId = Number.parseInt(params.teamId as string);
 
-  if (isNaN(teamId)) {
-    throw new Response('Not Found', { status: 404 });
-  }
+  // undefined means all teams
+  const teamId = params.teamId
+    ? Number.parseInt(params.teamId as string)
+    : teamAll;
 
-  const team = await getTeam(teamSnapClientId, teamId);
+  const currentTeam =
+    teamId === teamAll
+      ? teamAll
+      : isNaN(teamId)
+      ? null
+      : await getTeam(teamSnapClientId, teamId);
 
-  if (team === null) {
-    throw new Response('Not Found', { status: 404 });
+  if (currentTeam === null) {
+    // not found
+    throw new Response('Team Not Found', { status: 404 });
   }
 
   // Get today's date
@@ -30,7 +55,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   today.setHours(0, 0, 0, 0);
 
   const events = await searchEvents(teamSnapClientId, {
-    teamIds: [team.id as number],
+    teamIds: await getQueryTeamIds(teamSnapClientId, teamId),
     startedAfter: today,
   });
 
@@ -53,7 +78,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   return json({
     divisionLocations,
     events,
-    team,
+    team: currentTeam,
     teams,
   });
 };
@@ -64,7 +89,11 @@ export default function Events() {
     <div className="container mx-auto px-4">
       <div className="px-4 sm:px-0">
         <h1 className="text-lg font-semibold leading-7 text-gray-900">
-          {data.team.name} - Teams Events
+          {data.team === 'all' ? (
+            <>All Teams Events</>
+          ) : (
+            <>{(data.team as TeamDTO).name} Team Events</>
+          )}
         </h1>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
           Upcoming of hockey events

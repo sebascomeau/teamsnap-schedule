@@ -9,6 +9,10 @@ export const getDivision = async (teamSnapClientId: string, id: number) => {
     ],
   });
 
+  if (!response.ok) {
+    return null;
+  }
+
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
     jsonResponse.collection.items

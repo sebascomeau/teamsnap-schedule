@@ -1,4 +1,4 @@
-import { parseISO } from 'date-fns';
+import { parse, parseISO } from 'date-fns';
 
 import { utcToZonedTime } from 'date-fns-tz';
 
@@ -15,4 +15,20 @@ export const convertUTCDateStringToTimeZone = (
   const utcDate = parseISO(utcDateString);
   const dateInTimeZone = utcToZonedTime(utcDate, targetTimeZone);
   return dateInTimeZone;
+};
+
+/**
+ * Parses a date string in the format "yyyy-mm-dd" and returns a Date object using date-fns.
+ * @param dateString - The date string in "yyyy-mm-dd" format.
+ * @returns A Date object representing the parsed date, or null if the parsing fails.
+ */
+export const parseDateStringToDate = (dateString: string) => {
+  const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
+
+  if (isNaN(parsedDate.getTime())) {
+    // If parsing fails, return null.
+    return null;
+  }
+
+  return parsedDate;
 };

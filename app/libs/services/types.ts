@@ -50,6 +50,14 @@ export interface EventDTO {
   time_zone_iana_name?: string | null;
 }
 
+export interface EventByDay {
+  [day: string]: EventDTO[];
+}
+
+export interface EventByWeek {
+  [weekStart: string]: EventByDay;
+}
+
 export interface TeamDTO {
   id: number;
   division_name?: string | null;

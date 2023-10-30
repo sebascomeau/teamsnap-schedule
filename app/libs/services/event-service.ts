@@ -1,5 +1,7 @@
+import { format, parseISO, startOfWeek } from 'date-fns';
 import { toEventDTO } from '../mappers/event-mapper';
-import type { ApiResponse, EventDTO } from './types';
+import { convertUTCDateStringToTimeZone } from '../utils/date-utils';
+import type { ApiResponse, EventByWeek, EventDTO } from './types';
 
 export const getEvent = async (teamSnapClientId: string, id: number) => {
   const response = await fetch(`https://api.teamsnap.com/v3/events/${id}`, {
@@ -53,3 +55,43 @@ export const isGameEvent = (event: EventDTO) =>
   event?.is_game === true ||
   (event.name?.match(/ vs /i) ?? false) ||
   (event.name?.match(/ @ /i) ?? false);
+
+export const convertEventStartDate = (event: EventDTO) =>
+  event.start_date
+    ? event.time_zone_iana_name
+      ? convertUTCDateStringToTimeZone(
+          event.start_date,
+          event.time_zone_iana_name
+        )
+      : parseISO(event.start_date)
+    : undefined;
+
+/**
+ * Groups events by week and day based on the start_date
+ * @param events - An array of Event objects.
+ * @returns An object organizing events by week and day.
+ */
+export const groupEventsByWeek = (events: EventDTO[]) => {
+  const eventsByWeek: EventByWeek = {};
+
+  // Group events by week, then by day within each week
+  events.forEach((event) => {
+    const startDate = convertEventStartDate(event);
+    if (startDate) {
+      const weekStart = startOfWeek(startDate);
+      const weekStartDateString = weekStart.toISOString();
+      if (!eventsByWeek[weekStartDateString]) {
+        eventsByWeek[weekStartDateString] = {};
+      }
+
+      const day = format(startDate, 'yyyy-MM-dd');
+      if (!eventsByWeek[weekStartDateString][day]) {
+        eventsByWeek[weekStartDateString][day] = [];
+      }
+
+      eventsByWeek[weekStartDateString][day].push(event);
+    }
+  });
+
+  return eventsByWeek;
+};

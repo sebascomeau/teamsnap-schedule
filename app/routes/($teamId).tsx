@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from '~/components/ui/card';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
+import { getDivision } from '~/libs/services/division-service';
 import {
   convertEventStartDate,
   groupEventsByWeek,
@@ -27,15 +28,15 @@ import type { TeamDTO } from '~/libs/services/types';
 import { parseDateStringToDate } from '~/libs/utils/date-utils';
 import { removeNullOrUndefined } from '~/libs/utils/misc-utils';
 
-const divisionId = 760038;
+const rootDivisionId = 760038;
 const teamAll = 'all';
 
-const getQueryTeamIds = async (
+const getQueryTeamIdsByDivisionId = async (
   teamSnapClientId: string,
   teamId: typeof teamAll | number
 ) => {
   return teamId === teamAll
-    ? (await searchTeamsByDivisionId(teamSnapClientId, divisionId)).map(
+    ? (await searchTeamsByDivisionId(teamSnapClientId, rootDivisionId)).map(
         ({ id }) => id
       )
     : [teamId];
@@ -44,7 +45,13 @@ const getQueryTeamIds = async (
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
 
-  console.log('bob');
+  // get root division
+  const rootDivision = await getDivision(teamSnapClientId, rootDivisionId);
+
+  if (rootDivision === null) {
+    // not found
+    throw new Response('Root Division Not Found', { status: 404 });
+  }
 
   // undefined means all teams
   const teamId = params.teamId ? Number.parseInt(params.teamId) : teamAll;
@@ -68,7 +75,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   today.setHours(0, 0, 0, 0);
 
   const events = await searchEvents(teamSnapClientId, {
-    teamIds: await getQueryTeamIds(teamSnapClientId, teamId),
+    teamIds: await getQueryTeamIdsByDivisionId(teamSnapClientId, teamId),
     startedAfter: today,
   });
 
@@ -87,6 +94,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   return json({
     divisionLocations,
     events,
+    rootDivision,
     team: currentTeam,
     teams,
   });
@@ -102,10 +110,14 @@ export default function Events() {
         {data.team === 'all' ? (
           <>All Teams Events</>
         ) : (
-          <>Team Events - {(data.team as TeamDTO).name}</>
+          <>{(data.team as TeamDTO).name} Team Events</>
         )}
       </h1>
-      <p className="text-lg text-muted-foreground">Upcoming of team events</p>
+      <p className="text-lg text-muted-foreground">
+        <span className="font-semibold">{data.events.length}</span> events
+        scheduled for the {data.rootDivision.name}{' '}
+        {data.rootDivision.season_name} season.
+      </p>
 
       {Object.entries(eventsByWeek).map(([weekStart, eventsByDay]) => {
         const startDate = new Date(weekStart);

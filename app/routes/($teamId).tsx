@@ -1,9 +1,17 @@
 import { type LoaderFunctionArgs, json } from '@remix-run/node';
-import { useLoaderData } from '@remix-run/react';
+import { Link, useLoaderData } from '@remix-run/react';
 import { addDays, format, parse } from 'date-fns';
+import { CalendarDays, Clock, MapPin } from 'lucide-react';
 import { Fragment } from 'react';
 import { GameTag } from '~/components/GameTag';
-import { GoogleMapLink } from '~/components/GoogleMapLink';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
 import {
   convertEventStartDate,
@@ -35,6 +43,8 @@ const getQueryTeamIds = async (
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
+
+  console.log('bob');
 
   // undefined means all teams
   const teamId = params.teamId
@@ -90,38 +100,36 @@ export default function Events() {
 
   return (
     <div className="container mx-auto px-4">
-      <div className="px-4 sm:px-0">
-        <h1 className="text-3xl font-bold">
-          {data.team === 'all' ? (
-            <>All Teams Events</>
-          ) : (
-            <>Team Events - {(data.team as TeamDTO).name}</>
-          )}
-        </h1>
-        <p className="mt-1 text-lg text-muted-foreground sm:text-xl text-gray-500">
-          Upcoming of team events
-        </p>
-      </div>
-      <div className="my-6 border-t border-gray-100"></div>
+      <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+        {data.team === 'all' ? (
+          <>All Teams Events</>
+        ) : (
+          <>Team Events - {(data.team as TeamDTO).name}</>
+        )}
+      </h1>
+      <p className="text-lg text-muted-foreground">Upcoming of team events</p>
       {Object.entries(eventsByWeek).map(([weekStart, eventsByDay]) => {
         const startDate = new Date(weekStart);
         const endDate = addDays(startDate, 6);
 
         return (
-          <div key={'week-' + weekStart}>
-            <h2>
+          <Fragment key={'week-' + weekStart}>
+            <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-4 first:mt-0">
               Week {format(startDate, 'MMM dd')} - {format(endDate, 'MMM dd')}
             </h2>
             {Object.entries(eventsByDay).map(([day, events]) => (
               <div key={day}>
-                <h3>
-                  {format(
-                    parse(day, 'yyyy-mm-dd', new Date()),
-                    'iiii, MMMM do'
-                  )}
+                <h3 className="flex gap-1 items-center my-4 scroll-m-20 text-2xl font-semibold tracking-tight">
+                  <CalendarDays />
+                  <span>
+                    {format(
+                      parse(day, 'yyyy-mm-dd', new Date()),
+                      'iiii, MMMM do'
+                    )}
+                  </span>
                 </h3>
-                <ul>
-                  {events.map((event, index) => {
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {events.map((event) => {
                     const startDate = convertEventStartDate(event);
                     const team = data.teams.find(
                       ({ id }) => id === event.team_id
@@ -130,44 +138,44 @@ export default function Events() {
                       ({ id }) => id === event.division_location_id
                     );
                     return (
-                      <div
-                        key={event.id}
-                        className="flex flex-col w-full border rounded-none md:flex-row"
-                      >
-                        <div className="p-4 font-normal text-sm text-gray-800 md:w-3/4">
-                          <h3 className="text-base font-semibold leading-7 text-gray-900">
-                            {startDate && format(startDate, 'hh:mm aaa')} -{' '}
-                            {event.name} {isGameEvent(event) && <GameTag />}
-                          </h3>
-                          <p>{team?.name}</p>
+                      <Card key={event.id}>
+                        <CardHeader>
+                          <CardTitle className="flex gap-1">
+                            <Clock size={16} />
+                            <span>
+                              {startDate && format(startDate, 'hh:mm aa')} -{' '}
+                              {event.name}
+                            </span>
+                          </CardTitle>
+                          <CardDescription className="flex items-center gap-1">
+                            <Link to={`/${team?.id}`}>{team?.name}</Link>
+                            {isGameEvent(event) && <GameTag />}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
                           {divisionLocation && (
-                            <>
-                              <p className="mt-4 text-gray-700">
-                                <strong>{divisionLocation.name}</strong>
-                                {divisionLocation.address && (
-                                  <>
-                                    <br />
-                                    {divisionLocation.address}
-                                  </>
-                                )}
-                              </p>
+                            <div className="space-y-1">
+                              <div className="flex gap-1">
+                                <MapPin size={16} />
+                                <p className="text-sm font-medium leading-none">
+                                  {divisionLocation.name}
+                                </p>
+                              </div>
                               {divisionLocation.address && (
-                                <div className="mt-2">
-                                  <GoogleMapLink
-                                    address={divisionLocation.address}
-                                  />
-                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {divisionLocation.address}
+                                </p>
                               )}
-                            </>
+                            </div>
                           )}
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                     );
                   })}
-                </ul>
+                </div>
               </div>
             ))}
-          </div>
+          </Fragment>
         );
       })}
     </div>

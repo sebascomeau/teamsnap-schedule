@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { HamburgerMenuIcon } from '@radix-ui/react-icons';
+import { Menu } from 'lucide-react';
 import { cn } from '~/lib/utils';
 import { Button } from '~/components/ui/button';
 import { ScrollArea } from '~/components/ui/scroll-area';
@@ -17,7 +17,7 @@ export function MobileNav() {
           variant="ghost"
           className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
         >
-          <HamburgerMenuIcon className="h-5 w-5" />
+          <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>

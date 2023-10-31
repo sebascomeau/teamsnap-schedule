@@ -23,6 +23,7 @@ import { getRootDivisionTeams, getTeamAll } from './libs/services/team-service';
 import type { NavItem } from './components/Nav';
 import { useMemo } from 'react';
 import { SiteHeader } from './components/SiteHeader';
+import { config } from './libs/config';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -43,13 +44,26 @@ export const links: LinksFunction = () => [
   },
 ];
 
-const teamAll = getTeamAll();
+const getBrowserEnvironment = () => {
+  const env = process.env;
+
+  return {
+    TEAMSNAP_ROOT_DIVISION_ID: env.TEAMSNAP_ROOT_DIVISION_ID,
+    TEAMSNAP_CLIENT_ID: env.TEAMSNAP_CLIENT_ID,
+  };
+};
+
+const appConfig = config();
+const teamAll = getTeamAll(appConfig.TEAMSNAP_ROOT_DIVISION_ID);
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
 
   // get root division
-  const rootDivision = await getRootDivision(teamSnapClientId);
+  const rootDivision = await getRootDivision(
+    appConfig.TEAMSNAP_CLIENT_ID,
+    appConfig.TEAMSNAP_ROOT_DIVISION_ID
+  );
   if (rootDivision === null) {
     throw new Response('Root Division Not Found', { status: 404 });
   }
@@ -61,9 +75,13 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   );
 
   // get root division's team
-  const rootDivisionTeams = await getRootDivisionTeams(teamSnapClientId);
+  const rootDivisionTeams = await getRootDivisionTeams(
+    appConfig.TEAMSNAP_CLIENT_ID,
+    appConfig.TEAMSNAP_ROOT_DIVISION_ID
+  );
 
   return json({
+    ENV: getBrowserEnvironment(),
     rootDivisionTree,
     rootDivision,
     rootDivisionTeams,
@@ -107,6 +125,11 @@ export default function App() {
           <Outlet />
         </div>
         <ScrollRestoration />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.ENV = ${JSON.stringify(data.ENV)}`,
+          }}
+        />
         <Scripts />
         <LiveReload />
       </body>

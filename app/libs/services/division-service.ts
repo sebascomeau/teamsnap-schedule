@@ -25,7 +25,7 @@ export const getDivision = async (teamSnapClientId: string, id: number) => {
 let getRootDivisionCache: DivisionDTO | undefined | null;
 export const getRootDivision = async (
   teamSnapClientId: string,
-  rootDivisionId: number = 760038
+  rootDivisionId: number
 ) => {
   if (typeof getRootDivisionCache !== 'undefined') return getRootDivisionCache;
   getRootDivisionCache = await getDivision(teamSnapClientId, rootDivisionId);

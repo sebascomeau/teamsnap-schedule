@@ -22,11 +22,11 @@ export const getTeam = async (teamSnapClientId: string, id: number) => {
   );
 };
 
-export const getTeamAll = () =>
+export const getTeamAll = (division_id: number) =>
   ({
     id: -1,
     name: 'All/Tous',
-    division_id: 760038,
+    division_id,
   } as const satisfies TeamDTO);
 
 export const searchTeams = async (
@@ -83,11 +83,14 @@ export const searchTeamsByDivisionId = async (
 
 // use for caching - need a better way
 let getRootDivisionTeamsCache: Array<TeamDTO> | undefined;
-export const getRootDivisionTeams = async (teamSnapClientId: string) => {
+export const getRootDivisionTeams = async (
+  teamSnapClientId: string,
+  rootDivisionId: number
+) => {
   if (typeof getRootDivisionTeamsCache !== 'undefined')
     return getRootDivisionTeamsCache;
 
-  const rootDivision = await getRootDivision(teamSnapClientId);
+  const rootDivision = await getRootDivision(teamSnapClientId, rootDivisionId);
   if (rootDivision === null) return [];
 
   getRootDivisionTeamsCache = await searchTeamsByDivisionId(

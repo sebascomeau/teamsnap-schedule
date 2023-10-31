@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
+import { config } from '~/libs/config';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
 import { getRootDivision } from '~/libs/services/division-service';
 import {
@@ -29,20 +30,25 @@ import {
 import { parseDateStringToDate } from '~/libs/utils/date-utils';
 import { removeNullOrUndefined } from '~/libs/utils/misc-utils';
 
-const teamAll = getTeamAll();
+const appConfig = config();
+const teamAll = getTeamAll(appConfig.TEAMSNAP_ROOT_DIVISION_ID);
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
-  const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
-
   // get root division
-  const rootDivision = await getRootDivision(teamSnapClientId);
+  const rootDivision = await getRootDivision(
+    appConfig.TEAMSNAP_CLIENT_ID,
+    appConfig.TEAMSNAP_ROOT_DIVISION_ID
+  );
   if (rootDivision === null) {
     throw new Response('Root Division Not Found', { status: 404 });
   }
 
   // undefined means all teams
   const team = params.teamId
-    ? await getTeam(teamSnapClientId, Number.parseInt(params.teamId))
+    ? await getTeam(
+        appConfig.TEAMSNAP_CLIENT_ID,
+        Number.parseInt(params.teamId)
+      )
     : teamAll;
 
   if (team === null) {
@@ -58,9 +64,14 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   const searchEventsTeamIds =
     team.id === teamAll.id
-      ? (await getRootDivisionTeams(teamSnapClientId)).map(({ id }) => id)
+      ? (
+          await getRootDivisionTeams(
+            appConfig.TEAMSNAP_CLIENT_ID,
+            appConfig.TEAMSNAP_ROOT_DIVISION_ID
+          )
+        ).map(({ id }) => id)
       : [team.id];
-  const events = await searchEvents(teamSnapClientId, {
+  const events = await searchEvents(appConfig.TEAMSNAP_CLIENT_ID, {
     teamIds: searchEventsTeamIds,
     startedAfter: today,
   });
@@ -69,13 +80,18 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const divisionLocationIds = removeNullOrUndefined(
     events.map(({ division_location_id }) => division_location_id)
   );
-  const divisionLocations = await searchDivisionLocations(teamSnapClientId, {
-    ids: divisionLocationIds,
-  });
+  const divisionLocations = await searchDivisionLocations(
+    appConfig.TEAMSNAP_CLIENT_ID,
+    {
+      ids: divisionLocationIds,
+    }
+  );
 
   // search event's teams
   const teamIds = removeNullOrUndefined(events.map(({ team_id }) => team_id));
-  const teams = await searchTeams(teamSnapClientId, { ids: teamIds });
+  const teams = await searchTeams(appConfig.TEAMSNAP_CLIENT_ID, {
+    ids: teamIds,
+  });
 
   return json({
     divisionLocations,

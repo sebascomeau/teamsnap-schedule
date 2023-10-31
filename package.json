@@ -1,5 +1,5 @@
 {
-  "name": "teamsnap-schedule",
+  "name": "teamsnap",
   "private": true,
   "sideEffects": false,
   "type": "module",
@@ -30,6 +30,7 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@flydotio/dockerfile": "^0.4.10",
     "@remix-run/dev": "^2.1.0",
     "@remix-run/eslint-config": "^2.1.0",
     "@types/react": "^18.2.33",

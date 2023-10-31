@@ -22,7 +22,12 @@ export const getTeam = async (teamSnapClientId: string, id: number) => {
   );
 };
 
-export const getTeamAll = (): TeamDTO => ({ id: -1, name: 'All' });
+export const getTeamAll = () =>
+  ({
+    id: -1,
+    name: 'All/Tous',
+    division_id: 760038,
+  } as const satisfies TeamDTO);
 
 export const searchTeams = async (
   teamSnapClientId: string,

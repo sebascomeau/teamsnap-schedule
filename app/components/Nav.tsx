@@ -7,7 +7,22 @@ import { Sheet, SheetContent, SheetTrigger } from '~/components/ui/sheet';
 import type { LinkProps } from '@remix-run/react';
 import { Link } from '@remix-run/react';
 
-export function MobileNav() {
+export interface NavItem {
+  items?: ReadonlyArray<NavLinkItem>;
+  title: string;
+}
+
+export interface NavLinkItem {
+  disabled?: boolean;
+  href: string;
+  title: string;
+}
+
+export interface NavProps {
+  items?: ReadonlyArray<NavItem>;
+}
+
+export const Nav = ({ items }: NavProps) => {
   const [open, setOpen] = React.useState(false);
 
   return (
@@ -21,8 +36,8 @@ export function MobileNav() {
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="pr-0">
-        <MobileLink
+      <SheetContent side="right">
+        <NavLink
           to="/"
           className="flex space-x-2 items-center"
           onOpenChange={setOpen}
@@ -31,33 +46,28 @@ export function MobileNav() {
             alt=""
             src="https://bathurstminorhockey.teamsnapsites.com/wp-content/uploads/sites/415/2023/08/Hockey-mineur-_SSa-R06b_Mil-1-3.png"
             className="w-10 h-10"
+            height={40}
+            width={40}
           />
           <span className="font-bold">Bathurst Hockey</span>
-        </MobileLink>
+        </NavLink>
         <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="flex flex-col space-y-2">
-            {[
-              {
-                title: 'Schedule',
-                items: [
-                  { id: '-1', href: '/', title: 'All Teams', disabled: false },
-                ],
-              },
-            ].map((item, index) => (
+            {items?.map((item, index) => (
               <div key={index} className="flex flex-col space-y-3 pt-6">
                 <h4 className="font-medium">{item.title}</h4>
-                {item.items.length > 0 &&
-                  item.items.map((item) => (
+                {(item.items?.length ?? 0) > 0 &&
+                  item.items?.map((item) => (
                     <React.Fragment key={item.href}>
                       {!item.disabled &&
                         (item.href ? (
-                          <MobileLink
+                          <NavLink
                             to={item.href}
                             onOpenChange={setOpen}
                             className="text-muted-foreground"
                           >
                             {item.title}
-                          </MobileLink>
+                          </NavLink>
                         ) : (
                           item.title
                         ))}
@@ -70,21 +80,21 @@ export function MobileNav() {
       </SheetContent>
     </Sheet>
   );
-}
+};
 
-interface MobileLinkProps extends LinkProps {
+export interface NavLinkProps extends LinkProps {
   onOpenChange?: (open: boolean) => void;
   children: React.ReactNode;
   className?: string;
 }
 
-function MobileLink({
+export const NavLink = ({
   to,
   onOpenChange,
   className,
   children,
   ...props
-}: MobileLinkProps) {
+}: NavLinkProps) => {
   return (
     <Link
       to={to}
@@ -97,4 +107,4 @@ function MobileLink({
       {children}
     </Link>
   );
-}
+};

@@ -45,6 +45,10 @@ export const searchEvents = async (
     }
   );
 
+  if (!response.ok) {
+    return [];
+  }
+
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
     jsonResponse.collection.items?.map(({ data }) => toEventDTO(data)) ?? []
@@ -56,15 +60,20 @@ export const isGameEvent = (event: EventDTO) =>
   (event.name?.match(/ vs /i) ?? false) ||
   (event.name?.match(/ @ /i) ?? false);
 
-export const convertEventStartDate = (event: EventDTO) =>
-  event.start_date
-    ? event.time_zone_iana_name
-      ? convertUTCDateStringToTimeZone(
-          event.start_date,
-          event.time_zone_iana_name
-        )
-      : parseISO(event.start_date)
-    : undefined;
+export const convertEventStartDate = (event: EventDTO) => {
+  if (!event.start_date) {
+    return undefined;
+  }
+
+  if (event.time_zone_iana_name) {
+    return convertUTCDateStringToTimeZone(
+      event.start_date,
+      event.time_zone_iana_name
+    );
+  }
+
+  return parseISO(event.start_date);
+};
 
 /**
  * Groups events by week and day based on the start_date

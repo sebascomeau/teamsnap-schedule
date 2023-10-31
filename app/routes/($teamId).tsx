@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '~/components/ui/card';
 import { searchDivisionLocations } from '~/libs/services/division-location-service';
-import { getDivision } from '~/libs/services/division-service';
+import { getRootDivision } from '~/libs/services/division-service';
 import {
   convertEventStartDate,
   groupEventsByWeek,
@@ -20,47 +20,32 @@ import {
   searchEvents,
 } from '~/libs/services/event-service';
 import {
+  getRootDivisionTeams,
   getTeam,
+  getTeamAll,
   searchTeams,
-  searchTeamsByDivisionId,
 } from '~/libs/services/team-service';
-import type { TeamDTO } from '~/libs/services/types';
+
 import { parseDateStringToDate } from '~/libs/utils/date-utils';
 import { removeNullOrUndefined } from '~/libs/utils/misc-utils';
 
-const rootDivisionId = 760038;
-const teamAll = 'all';
-
-const getQueryTeamIdsByDivisionId = async (
-  teamSnapClientId: string,
-  teamId: typeof teamAll | number
-) => {
-  return teamId === teamAll
-    ? (await searchTeamsByDivisionId(teamSnapClientId, rootDivisionId)).map(
-        ({ id }) => id
-      )
-    : [teamId];
-};
+const teamAll = getTeamAll();
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
 
   // get root division
-  const rootDivision = await getDivision(teamSnapClientId, rootDivisionId);
-
+  const rootDivision = await getRootDivision(teamSnapClientId);
   if (rootDivision === null) {
-    // not found
     throw new Response('Root Division Not Found', { status: 404 });
   }
 
   // undefined means all teams
-  const teamId = params.teamId ? Number.parseInt(params.teamId) : teamAll;
+  const team = params.teamId
+    ? await getTeam(teamSnapClientId, Number.parseInt(params.teamId))
+    : teamAll;
 
-  const currentTeam = (teamId === teamAll)
-    ? { id: 9999999, name: 'All' } satisfies TeamDTO
-    : await getTeam(teamSnapClientId, teamId);
-
-  if (currentTeam === null) {
+  if (team === null) {
     // not found
     throw new Response('Team Not Found', { status: 404 });
   }
@@ -71,8 +56,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   // Set the time to zero (midnight)
   today.setHours(0, 0, 0, 0);
 
+  const searchEventsTeamIds =
+    team.id === teamAll.id
+      ? (await getRootDivisionTeams(teamSnapClientId)).map(({ id }) => id)
+      : [team.id];
   const events = await searchEvents(teamSnapClientId, {
-    teamIds: await getQueryTeamIdsByDivisionId(teamSnapClientId, teamId),
+    teamIds: searchEventsTeamIds,
     startedAfter: today,
   });
 
@@ -92,7 +81,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     divisionLocations,
     events,
     rootDivision,
-    team: currentTeam,
+    team,
     teams,
   });
 };
@@ -104,11 +93,9 @@ export default function Events() {
   return (
     <div className="container mx-auto px-4">
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-        {data.team === 'all' ? (
-          <>All Teams Events</>
-        ) : (
-          <>{(data.team as TeamDTO).name} Team Events</>
-        )}
+        {data.team.id === teamAll.id
+          ? 'All Teams Events'
+          : `${data.team.name} Team Events`}
       </h1>
       <p className="text-lg text-muted-foreground">
         <span className="font-semibold">{data.events.length}</span> events

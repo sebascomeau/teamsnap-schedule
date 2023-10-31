@@ -45,6 +45,10 @@ export const searchDivisionLocations = async (
     }
   );
 
+  if (!response.ok) {
+    return [];
+  }
+
   const jsonResponse = (await response.json()) as ApiResponse;
   return (
     jsonResponse.collection.items?.map(({ data }) =>

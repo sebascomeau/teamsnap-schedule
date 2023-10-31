@@ -56,12 +56,9 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   // undefined means all teams
   const teamId = params.teamId ? Number.parseInt(params.teamId) : teamAll;
 
-  const currentTeam =
-    teamId === teamAll
-      ? teamAll
-      : isNaN(teamId)
-      ? null
-      : await getTeam(teamSnapClientId, teamId);
+  const currentTeam = (teamId === teamAll)
+    ? { id: 9999999, name: 'All' } satisfies TeamDTO
+    : await getTeam(teamSnapClientId, teamId);
 
   if (currentTeam === null) {
     // not found

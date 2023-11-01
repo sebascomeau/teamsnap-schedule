@@ -1,8 +1,13 @@
+import { cachified } from "cachified";
 import { format, parseISO, startOfWeek } from "date-fns";
+import {
+  lruCache as cache,
+  defaultTtl as ttl,
+} from "../../libs/utils/cache-utils";
+import type { Config } from "../config";
 import { toEventDTO } from "../mappers/event-mapper";
 import { convertUTCDateStringToTimeZone } from "../utils/date-utils";
 import type { ApiResponse, EventByWeek, EventDTO } from "./types";
-import type { Config } from "../config";
 
 export interface EventServiceDependencies {
   readonly config: Config;
@@ -10,23 +15,33 @@ export interface EventServiceDependencies {
 
 export const EventService = (dependencies: EventServiceDependencies) => {
   const getEvent = async (id: number) => {
-    const response = await fetch(`https://api.teamsnap.com/v3/events/${id}`, {
-      headers: [
-        ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
-        ["Accept", "application/vnd.collection+json"],
-      ],
+    return cachified({
+      key: `getEvent-${id}`,
+      cache,
+      getFreshValue: async () => {
+        const response = await fetch(
+          `https://api.teamsnap.com/v3/events/${id}`,
+          {
+            headers: [
+              ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
+              ["Accept", "application/vnd.collection+json"],
+            ],
+          }
+        );
+
+        if (!response.ok) {
+          return null;
+        }
+
+        const jsonResponse = (await response.json()) as ApiResponse;
+        return (
+          jsonResponse.collection.items
+            ?.map(({ data }) => toEventDTO(data))
+            .find((o) => true) ?? null
+        );
+      },
+      ttl,
     });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const jsonResponse = (await response.json()) as ApiResponse;
-    return (
-      jsonResponse.collection.items
-        ?.map(({ data }) => toEventDTO(data))
-        .find((o) => true) ?? null
-    );
   };
 
   const searchEvents = async (query?: {
@@ -34,28 +49,36 @@ export const EventService = (dependencies: EventServiceDependencies) => {
     teamIds?: number[];
     startedAfter?: Date;
   }) => {
-    const response = await fetch(
-      `https://api.teamsnap.com/v3/events/search?id=${
-        query?.ids?.join(",") ?? ""
-      }&team_id=${query?.teamIds?.join(",") ?? ""}&started_after=${
-        query?.startedAfter?.toISOString() ?? ""
-      }`,
-      {
-        headers: [
-          ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
-          ["Accept", "application/vnd.collection+json"],
-        ],
+    const id = query?.ids?.join(",") ?? "";
+    const teamId = query?.teamIds?.join(",") ?? "";
+    const startedAfter = query?.startedAfter?.toISOString() ?? "";
+
+    return cachified({
+      key: `searchEvents-${id}-${teamId}-${startedAfter}`,
+      cache,
+      getFreshValue: async () => {
+        const response = await fetch(
+          `https://api.teamsnap.com/v3/events/search?id=${id}&team_id=${teamId}&started_after=${startedAfter}`,
+          {
+            headers: [
+              ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
+              ["Accept", "application/vnd.collection+json"],
+            ],
+          }
+        );
+
+        if (!response.ok) {
+          return [];
+        }
+
+        const jsonResponse = (await response.json()) as ApiResponse;
+        return (
+          jsonResponse.collection.items?.map(({ data }) => toEventDTO(data)) ??
+          []
+        );
       },
-    );
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const jsonResponse = (await response.json()) as ApiResponse;
-    return (
-      jsonResponse.collection.items?.map(({ data }) => toEventDTO(data)) ?? []
-    );
+      ttl,
+    });
   };
 
   return {
@@ -77,7 +100,7 @@ export const convertEventStartDate = (event: EventDTO) => {
   if (event.time_zone_iana_name) {
     return convertUTCDateStringToTimeZone(
       event.start_date,
-      event.time_zone_iana_name,
+      event.time_zone_iana_name
     );
   }
 

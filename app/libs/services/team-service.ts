@@ -104,10 +104,15 @@ export const TeamService = (dependencies: TeamServiceDependencies) => {
         }
 
         const jsonResponse = (await response.json()) as ApiResponse;
-        return (
+        const teams =
           jsonResponse.collection.items?.map(({ data }) => toTeamDTO(data)) ??
-          []
-        );
+          [];
+
+        if (divisionId === dependencies.config.TEAMSNAP_ROOT_DIVISION_ID) {
+          teams.unshift(getTeamAll());
+        }
+
+        return teams;
       },
       ttl,
     });

@@ -63,7 +63,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   // get root division's division tree
   const rootDivisionTree = await divisionService.getDivisionTree(
-    rootDivision.id,
+    rootDivision.id
   );
 
   // get root division's team
@@ -76,6 +76,8 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
     rootDivisionTeams,
   });
 };
+
+export type Loader = typeof loader;
 
 export default function App() {
   const data = useLoaderData<typeof loader>();

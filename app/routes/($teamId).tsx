@@ -1,8 +1,9 @@
 import { type LoaderFunctionArgs, json } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
+import { Link, useLoaderData, useRouteLoaderData } from "@remix-run/react";
 import { addDays, format } from "date-fns";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
 import { GameTag } from "~/components/GameTag";
+import type { Loader as RootLoader } from "../root";
 
 import {
   Card,
@@ -33,12 +34,6 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const teamSearvice = TeamService({ config, divisionService });
   const teamAll = teamSearvice.getTeamAll();
 
-  // get root division
-  const rootDivision = await divisionService.getRootDivision();
-  if (rootDivision === null) {
-    throw new Response("Root Division Not Found", { status: 404 });
-  }
-
   // undefined means all teams
   const team = params.teamId
     ? await teamSearvice.getTeam(Number.parseInt(params.teamId))
@@ -66,7 +61,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   // search event's division locations
   const divisionLocationIds = removeNullOrUndefined(
-    events.map(({ division_location_id }) => division_location_id),
+    events.map(({ division_location_id }) => division_location_id)
   );
   const divisionLocations =
     await divisionLocationService.searchDivisionLocations({
@@ -80,14 +75,16 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   return json({
     divisionLocations,
     events,
-    rootDivision,
     team,
     teams,
   });
 };
 
+export type Loader = typeof loader;
+
 export default function Events() {
-  const data = useLoaderData<typeof loader>();
+  const data = useLoaderData<Loader>();
+  const rootRouteData = useRouteLoaderData<RootLoader>("root");
   const eventsByWeek = groupEventsByWeek(data.events);
 
   return (
@@ -99,7 +96,7 @@ export default function Events() {
       </h1>
       <p className="text-lg text-muted-foreground">
         <span className="font-semibold">{data.events.length}</span> upcoming
-        events for the {data.rootDivision.season_name} season.
+        events for the {rootRouteData?.rootDivision.season_name} season.
       </p>
 
       {Object.entries(eventsByWeek).map(([weekStart, eventsByDay]) => {
@@ -124,10 +121,10 @@ export default function Events() {
                     {events.map((event) => {
                       const startDate = convertEventStartDate(event);
                       const team = data.teams.find(
-                        ({ id }) => id === event.team_id,
+                        ({ id }) => id === event.team_id
                       );
                       const divisionLocation = data.divisionLocations.find(
-                        ({ id }) => id === event.division_location_id,
+                        ({ id }) => id === event.division_location_id
                       );
                       return (
                         <Card key={event.id}>

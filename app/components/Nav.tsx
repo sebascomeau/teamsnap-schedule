@@ -36,7 +36,7 @@ export const Nav = ({ items }: NavProps) => {
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="right">
+      <SheetContent side="right" className="pr-0">
         <NavLink
           to="/"
           className="flex space-x-2 items-center"

@@ -1,9 +1,9 @@
-import { cssBundleHref } from '@remix-run/css-bundle';
+import { cssBundleHref } from "@remix-run/css-bundle";
 import {
   json,
   type LinksFunction,
   type LoaderFunctionArgs,
-} from '@remix-run/node';
+} from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -12,32 +12,32 @@ import {
   Scripts,
   ScrollRestoration,
   useLoaderData,
-} from '@remix-run/react';
+} from "@remix-run/react";
 
-import stylesheet from '~/tailwind.css';
-import { DivisionService } from './libs/services/division-service';
-import { isTeamAll, TeamService } from './libs/services/team-service';
-import type { NavItem } from './components/Nav';
-import { useMemo } from 'react';
-import { SiteHeader } from './components/SiteHeader';
-import { getConfig } from './libs/config';
+import stylesheet from "~/tailwind.css";
+import { DivisionService } from "./libs/services/division-service";
+import { isTeamAll, TeamService } from "./libs/services/team-service";
+import type { NavItem } from "./components/Nav";
+import { useMemo } from "react";
+import { SiteHeader } from "./components/SiteHeader";
+import { getConfig } from "./libs/config";
 
 export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: stylesheet },
-  ...(cssBundleHref ? [{ rel: 'stylesheet', href: cssBundleHref }] : []),
+  { rel: "stylesheet", href: stylesheet },
+  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
   {
-    rel: 'preconnect',
-    href: 'https://fonts.googleapis.com',
+    rel: "preconnect",
+    href: "https://fonts.googleapis.com",
   },
   {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
+    rel: "preconnect",
+    href: "https://fonts.gstatic.com",
+    crossOrigin: "anonymous",
   },
   {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap',
-    crossOrigin: 'anonymous',
+    rel: "stylesheet",
+    href: "https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap",
+    crossOrigin: "anonymous",
   },
 ];
 
@@ -58,12 +58,12 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
   // get root division
   const rootDivision = await divisionService.getRootDivision();
   if (rootDivision === null) {
-    throw new Response('Root Division Not Found', { status: 404 });
+    throw new Response("Root Division Not Found", { status: 404 });
   }
 
   // get root division's division tree
   const rootDivisionTree = await divisionService.getDivisionTree(
-    rootDivision.id
+    rootDivision.id,
   );
 
   // get root division's team
@@ -85,7 +85,7 @@ export default function App() {
       items: data.rootDivisionTeams
         .filter(({ division_id }) => division_id === id)
         .map((team) => ({
-          href: isTeamAll(team) ? '/' : `/${team.id}`,
+          href: isTeamAll(team) ? "/" : `/${team.id}`,
           title: team.name ?? team.id.toString(),
         })),
       title: name ?? id.toString(),

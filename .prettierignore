@@ -1,7 +1,11 @@
 # Add files here to ignore them from prettier formatting
+.eslintignore
 **/.git
+**/.github
 **/.hg
 **/.svn
 **/node_modules
+/build
 /coverage
 /dist
+/public

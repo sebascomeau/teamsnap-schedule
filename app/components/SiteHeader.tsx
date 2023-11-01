@@ -1,6 +1,6 @@
-import { Link } from '@remix-run/react';
-import type { NavProps } from './Nav';
-import { Nav } from './Nav';
+import { Link } from "@remix-run/react";
+import type { NavProps } from "./Nav";
+import { Nav } from "./Nav";
 
 export interface SiteHeaderProps {
   navProps?: NavProps;

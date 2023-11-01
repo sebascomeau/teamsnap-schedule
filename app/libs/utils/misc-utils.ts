@@ -5,6 +5,6 @@
  */
 export function removeNullOrUndefined<T>(array: (T | null | undefined)[]): T[] {
   return array.filter(
-    (value): value is T => value !== null && value !== undefined
+    (value): value is T => value !== null && value !== undefined,
   );
 }

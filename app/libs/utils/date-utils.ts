@@ -1,6 +1,6 @@
-import { parse, parseISO } from 'date-fns';
+import { parse, parseISO } from "date-fns";
 
-import { utcToZonedTime } from 'date-fns-tz';
+import { utcToZonedTime } from "date-fns-tz";
 
 /**
  * Convert a UTC date string to a specific timezone.
@@ -10,7 +10,7 @@ import { utcToZonedTime } from 'date-fns-tz';
  */
 export const convertUTCDateStringToTimeZone = (
   utcDateString: string,
-  targetTimeZone: string
+  targetTimeZone: string,
 ) => {
   const utcDate = parseISO(utcDateString);
   const dateInTimeZone = utcToZonedTime(utcDate, targetTimeZone);
@@ -23,7 +23,7 @@ export const convertUTCDateStringToTimeZone = (
  * @returns A Date object representing the parsed date, or null if the parsing fails.
  */
 export const parseDateStringToDate = (dateString: string) => {
-  const parsedDate = parse(dateString, 'yyyy-MM-dd', new Date());
+  const parsedDate = parse(dateString, "yyyy-MM-dd", new Date());
 
   if (isNaN(parsedDate.getTime())) {
     // If parsing fails, return null.

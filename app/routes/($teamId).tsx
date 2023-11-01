@@ -1,8 +1,8 @@
-import { type LoaderFunctionArgs, json } from '@remix-run/node';
-import { Link, useLoaderData } from '@remix-run/react';
-import { addDays, format } from 'date-fns';
-import { CalendarDays, Clock, MapPin } from 'lucide-react';
-import { GameTag } from '~/components/GameTag';
+import { type LoaderFunctionArgs, json } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import { addDays, format } from "date-fns";
+import { CalendarDays, Clock, MapPin } from "lucide-react";
+import { GameTag } from "~/components/GameTag";
 
 import {
   Card,
@@ -10,20 +10,20 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '~/components/ui/card';
-import { getConfig } from '~/libs/config';
-import { DivisionLocationService } from '~/libs/services/division-location-service';
-import { DivisionService } from '~/libs/services/division-service';
+} from "~/components/ui/card";
+import { getConfig } from "~/libs/config";
+import { DivisionLocationService } from "~/libs/services/division-location-service";
+import { DivisionService } from "~/libs/services/division-service";
 import {
   EventService,
   convertEventStartDate,
   groupEventsByWeek,
   isGameEvent,
-} from '~/libs/services/event-service';
-import { TeamService, isTeamAll } from '~/libs/services/team-service';
+} from "~/libs/services/event-service";
+import { TeamService, isTeamAll } from "~/libs/services/team-service";
 
-import { parseDateStringToDate } from '~/libs/utils/date-utils';
-import { removeNullOrUndefined } from '~/libs/utils/misc-utils';
+import { parseDateStringToDate } from "~/libs/utils/date-utils";
+import { removeNullOrUndefined } from "~/libs/utils/misc-utils";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const config = getConfig();
@@ -36,7 +36,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   // get root division
   const rootDivision = await divisionService.getRootDivision();
   if (rootDivision === null) {
-    throw new Response('Root Division Not Found', { status: 404 });
+    throw new Response("Root Division Not Found", { status: 404 });
   }
 
   // undefined means all teams
@@ -46,7 +46,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   if (team === null) {
     // not found
-    throw new Response('Team Not Found', { status: 404 });
+    throw new Response("Team Not Found", { status: 404 });
   }
 
   // Get today's date
@@ -66,7 +66,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   // search event's division locations
   const divisionLocationIds = removeNullOrUndefined(
-    events.map(({ division_location_id }) => division_location_id)
+    events.map(({ division_location_id }) => division_location_id),
   );
   const divisionLocations =
     await divisionLocationService.searchDivisionLocations({
@@ -94,7 +94,7 @@ export default function Events() {
     <>
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
         {isTeamAll(data.team)
-          ? 'All Teams Events'
+          ? "All Teams Events"
           : `${data.team.name} Team Events`}
       </h1>
       <p className="text-lg text-muted-foreground">
@@ -106,9 +106,9 @@ export default function Events() {
         const startDate = new Date(weekStart);
         const endDate = addDays(startDate, 6);
         return (
-          <div key={'week-' + weekStart}>
+          <div key={"week-" + weekStart}>
             <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight mt-8 mb-6">
-              Week {format(startDate, 'MMM dd')} - {format(endDate, 'MMM dd')}
+              Week {format(startDate, "MMM dd")} - {format(endDate, "MMM dd")}
             </h2>
             {Object.entries(eventsByDay).map(([day, events]) => {
               const parsedDay = parseDateStringToDate(day);
@@ -117,17 +117,17 @@ export default function Events() {
                   {parsedDay && (
                     <h3 className="flex gap-1 items-center scroll-m-20 text-2xl font-semibold tracking-tight mt-6 mb-4">
                       <CalendarDays />
-                      <span>{format(parsedDay, 'iiii, MMMM do')}</span>
+                      <span>{format(parsedDay, "iiii, MMMM do")}</span>
                     </h3>
                   )}
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {events.map((event) => {
                       const startDate = convertEventStartDate(event);
                       const team = data.teams.find(
-                        ({ id }) => id === event.team_id
+                        ({ id }) => id === event.team_id,
                       );
                       const divisionLocation = data.divisionLocations.find(
-                        ({ id }) => id === event.division_location_id
+                        ({ id }) => id === event.division_location_id,
                       );
                       return (
                         <Card key={event.id}>
@@ -135,7 +135,7 @@ export default function Events() {
                             <CardTitle className="flex gap-1">
                               <Clock size={16} />
                               <span>
-                                {startDate && format(startDate, 'hh:mm aa')} -{' '}
+                                {startDate && format(startDate, "hh:mm aa")} -{" "}
                                 {event.name}
                               </span>
                             </CardTitle>

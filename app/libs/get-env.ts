@@ -1,5 +1,5 @@
 export const isBrowser = () => {
-  return typeof window !== 'undefined';
+  return typeof window !== "undefined";
 };
 
 type WindowWithENV = Window &

@@ -1,8 +1,8 @@
-import { format, parseISO, startOfWeek } from 'date-fns';
-import { toEventDTO } from '../mappers/event-mapper';
-import { convertUTCDateStringToTimeZone } from '../utils/date-utils';
-import type { ApiResponse, EventByWeek, EventDTO } from './types';
-import type { Config } from '../config';
+import { format, parseISO, startOfWeek } from "date-fns";
+import { toEventDTO } from "../mappers/event-mapper";
+import { convertUTCDateStringToTimeZone } from "../utils/date-utils";
+import type { ApiResponse, EventByWeek, EventDTO } from "./types";
+import type { Config } from "../config";
 
 export interface EventServiceDependencies {
   readonly config: Config;
@@ -12,8 +12,8 @@ export const EventService = (dependencies: EventServiceDependencies) => {
   const getEvent = async (id: number) => {
     const response = await fetch(`https://api.teamsnap.com/v3/events/${id}`, {
       headers: [
-        ['X-Teamsnap-Client-Id', dependencies.config.TEAMSNAP_CLIENT_ID],
-        ['Accept', 'application/vnd.collection+json'],
+        ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
+        ["Accept", "application/vnd.collection+json"],
       ],
     });
 
@@ -36,16 +36,16 @@ export const EventService = (dependencies: EventServiceDependencies) => {
   }) => {
     const response = await fetch(
       `https://api.teamsnap.com/v3/events/search?id=${
-        query?.ids?.join(',') ?? ''
-      }&team_id=${query?.teamIds?.join(',') ?? ''}&started_after=${
-        query?.startedAfter?.toISOString() ?? ''
+        query?.ids?.join(",") ?? ""
+      }&team_id=${query?.teamIds?.join(",") ?? ""}&started_after=${
+        query?.startedAfter?.toISOString() ?? ""
       }`,
       {
         headers: [
-          ['X-Teamsnap-Client-Id', dependencies.config.TEAMSNAP_CLIENT_ID],
-          ['Accept', 'application/vnd.collection+json'],
+          ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
+          ["Accept", "application/vnd.collection+json"],
         ],
-      }
+      },
     );
 
     if (!response.ok) {
@@ -77,7 +77,7 @@ export const convertEventStartDate = (event: EventDTO) => {
   if (event.time_zone_iana_name) {
     return convertUTCDateStringToTimeZone(
       event.start_date,
-      event.time_zone_iana_name
+      event.time_zone_iana_name,
     );
   }
 
@@ -102,7 +102,7 @@ export const groupEventsByWeek = (events: EventDTO[]) => {
         eventsByWeek[weekStartDateString] = {};
       }
 
-      const day = format(startDate, 'yyyy-MM-dd');
+      const day = format(startDate, "yyyy-MM-dd");
       if (!eventsByWeek[weekStartDateString][day]) {
         eventsByWeek[weekStartDateString][day] = [];
       }

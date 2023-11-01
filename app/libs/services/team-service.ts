@@ -97,5 +97,11 @@ export const getRootDivisionTeams = async (
     teamSnapClientId,
     rootDivision.id
   );
+
+  // add team all
+  getRootDivisionTeamsCache.push(getTeamAll(rootDivisionId));
+
   return getRootDivisionTeamsCache;
 };
+
+export const isTeamAll = (team: TeamDTO) => team.id === -1;

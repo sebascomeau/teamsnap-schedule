@@ -24,16 +24,17 @@ import {
   getRootDivisionTeams,
   getTeam,
   getTeamAll,
+  isTeamAll,
   searchTeams,
 } from '~/libs/services/team-service';
 
 import { parseDateStringToDate } from '~/libs/utils/date-utils';
 import { removeNullOrUndefined } from '~/libs/utils/misc-utils';
 
-const appConfig = config();
-const teamAll = getTeamAll(appConfig.TEAMSNAP_ROOT_DIVISION_ID);
-
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
+  const appConfig = config();
+  const teamAll = getTeamAll(appConfig.TEAMSNAP_ROOT_DIVISION_ID);
+
   // get root division
   const rootDivision = await getRootDivision(
     appConfig.TEAMSNAP_CLIENT_ID,
@@ -109,7 +110,7 @@ export default function Events() {
   return (
     <>
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-        {data.team.id === teamAll.id
+        {isTeamAll(data.team)
           ? 'All Teams Events'
           : `${data.team.name} Team Events`}
       </h1>

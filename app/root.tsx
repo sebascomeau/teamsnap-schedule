@@ -19,7 +19,7 @@ import {
   getDivisionTree,
   getRootDivision,
 } from './libs/services/division-service';
-import { getRootDivisionTeams, getTeamAll } from './libs/services/team-service';
+import { getRootDivisionTeams, isTeamAll } from './libs/services/team-service';
 import type { NavItem } from './components/Nav';
 import { useMemo } from 'react';
 import { SiteHeader } from './components/SiteHeader';
@@ -53,11 +53,8 @@ const getBrowserEnvironment = () => {
   };
 };
 
-const appConfig = config();
-const teamAll = getTeamAll(appConfig.TEAMSNAP_ROOT_DIVISION_ID);
-
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const teamSnapClientId = process.env.TEAMSNAP_CLIENT_ID ?? '';
+  const appConfig = config();
 
   // get root division
   const rootDivision = await getRootDivision(
@@ -70,7 +67,7 @@ export const loader = async ({ params }: LoaderFunctionArgs) => {
 
   // get root division's division tree
   const rootDivisionTree = await getDivisionTree(
-    teamSnapClientId,
+    appConfig.TEAMSNAP_CLIENT_ID,
     rootDivision.id
   );
 
@@ -93,20 +90,12 @@ export default function App() {
 
   const navItems = useMemo(() => {
     return data.rootDivisionTree.map<NavItem>(({ id, name }) => ({
-      items:
-        id === teamAll.division_id
-          ? [
-              {
-                href: `/`,
-                title: teamAll.name,
-              },
-            ]
-          : data.rootDivisionTeams
-              .filter(({ division_id }) => division_id === id)
-              .map((team) => ({
-                href: `/${team.id}`,
-                title: team.name ?? team.id.toString(),
-              })),
+      items: data.rootDivisionTeams
+        .filter(({ division_id }) => division_id === id)
+        .map((team) => ({
+          href: isTeamAll(team) ? '/' : `/${team.id}`,
+          title: team.name ?? team.id.toString(),
+        })),
       title: name ?? id.toString(),
     }));
   }, [data.rootDivisionTeams, data.rootDivisionTree]);

@@ -1,53 +1,53 @@
 export interface ApiItemsData {
-  name: string;
-  value: string;
-  type: string;
+  readonly name: string;
+  readonly type: string;
+  readonly value: string;
 }
 
 export interface ApiResponse {
-  collection: {
-    items?: Array<{
-      data: Array<ApiItemsData>;
+  readonly collection: {
+    readonly items?: Array<{
+      readonly data: Array<ApiItemsData>;
     }>;
   };
 }
 
 export interface DivisionDTO {
-  id: number;
-  persistent_uuid?: number | null;
-  formatted_persistent_uuid?: string | null;
-  parent_id?: number | null;
-  name?: string | null;
-  season_name?: string | null;
-  is_archived?: boolean | null;
-  time_zone_iana_name?: string | null;
+  readonly formatted_persistent_uuid?: string | null;
+  readonly id: number;
+  readonly is_archived?: boolean | null;
+  readonly name?: string | null;
+  readonly parent_id?: number | null;
+  readonly persistent_uuid?: number | null;
+  readonly season_name?: string | null;
+  readonly time_zone_iana_name?: string | null;
 }
 
 export interface DivisionLocationDTO {
-  id: number;
-  type?: string | null;
-  address?: string | null;
-  name?: string | null;
-  notes?: string | null;
-  phone?: string | null;
-  division_id?: number | null;
-  url?: string | null;
+  readonly address?: string | null;
+  readonly division_id?: number | null;
+  readonly id: number;
+  readonly name?: string | null;
+  readonly notes?: string | null;
+  readonly phone?: string | null;
+  readonly type?: string | null;
+  readonly url?: string | null;
 }
 
 export interface EventDTO {
-  id: number;
-  division_location_id?: number | null;
-  is_canceled?: boolean | null;
-  is_game?: boolean | null;
-  is_tbd?: boolean | null;
-  location_id?: number | null;
-  name?: string | null;
-  opponent_id?: number | null;
-  points_for_opponent?: number | null;
-  points_for_team?: number | null;
-  start_date?: string | null;
-  team_id?: number | null;
-  time_zone_iana_name?: string | null;
+  readonly division_location_id?: number | null;
+  readonly id: number;
+  readonly is_canceled?: boolean | null;
+  readonly is_game?: boolean | null;
+  readonly is_tbd?: boolean | null;
+  readonly location_id?: number | null;
+  readonly name?: string | null;
+  readonly opponent_id?: number | null;
+  readonly points_for_opponent?: number | null;
+  readonly points_for_team?: number | null;
+  readonly start_date?: string | null;
+  readonly team_id?: number | null;
+  readonly time_zone_iana_name?: string | null;
 }
 
 export interface EventByDay {
@@ -59,11 +59,11 @@ export interface EventByWeek {
 }
 
 export interface TeamDTO {
-  id: number;
-  division_name?: string | null;
-  division_id?: number | null;
-  is_retired?: boolean | null;
-  name?: string | null;
-  season_name?: string | null;
-  time_zone_iana_name?: string | null;
+  readonly division_id?: number | null;
+  readonly division_name?: string | null;
+  readonly id: number;
+  readonly is_retired?: boolean | null;
+  readonly name?: string | null;
+  readonly season_name?: string | null;
+  readonly time_zone_iana_name?: string | null;
 }

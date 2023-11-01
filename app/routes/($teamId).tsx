@@ -11,45 +11,37 @@ import {
   CardHeader,
   CardTitle,
 } from '~/components/ui/card';
-import { config } from '~/libs/config';
-import { searchDivisionLocations } from '~/libs/services/division-location-service';
-import { getRootDivision } from '~/libs/services/division-service';
+import { getConfig } from '~/libs/config';
+import { DivisionLocationService } from '~/libs/services/division-location-service';
+import { DivisionService } from '~/libs/services/division-service';
 import {
+  EventService,
   convertEventStartDate,
   groupEventsByWeek,
   isGameEvent,
-  searchEvents,
 } from '~/libs/services/event-service';
-import {
-  getRootDivisionTeams,
-  getTeam,
-  getTeamAll,
-  isTeamAll,
-  searchTeams,
-} from '~/libs/services/team-service';
+import { TeamService, isTeamAll } from '~/libs/services/team-service';
 
 import { parseDateStringToDate } from '~/libs/utils/date-utils';
 import { removeNullOrUndefined } from '~/libs/utils/misc-utils';
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
-  const appConfig = config();
-  const teamAll = getTeamAll(appConfig.TEAMSNAP_ROOT_DIVISION_ID);
+  const config = getConfig();
+  const divisionService = DivisionService({ config });
+  const divisionLocationService = DivisionLocationService({ config });
+  const eventService = EventService({ config });
+  const teamSearvice = TeamService({ config, divisionService });
+  const teamAll = teamSearvice.getTeamAll();
 
   // get root division
-  const rootDivision = await getRootDivision(
-    appConfig.TEAMSNAP_CLIENT_ID,
-    appConfig.TEAMSNAP_ROOT_DIVISION_ID
-  );
+  const rootDivision = await divisionService.getRootDivision();
   if (rootDivision === null) {
     throw new Response('Root Division Not Found', { status: 404 });
   }
 
   // undefined means all teams
   const team = params.teamId
-    ? await getTeam(
-        appConfig.TEAMSNAP_CLIENT_ID,
-        Number.parseInt(params.teamId)
-      )
+    ? await teamSearvice.getTeam(Number.parseInt(params.teamId))
     : teamAll;
 
   if (team === null) {
@@ -65,14 +57,9 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   const searchEventsTeamIds =
     team.id === teamAll.id
-      ? (
-          await getRootDivisionTeams(
-            appConfig.TEAMSNAP_CLIENT_ID,
-            appConfig.TEAMSNAP_ROOT_DIVISION_ID
-          )
-        ).map(({ id }) => id)
+      ? (await teamSearvice.getRootDivisionTeams()).map(({ id }) => id)
       : [team.id];
-  const events = await searchEvents(appConfig.TEAMSNAP_CLIENT_ID, {
+  const events = await eventService.searchEvents({
     teamIds: searchEventsTeamIds,
     startedAfter: today,
   });
@@ -81,18 +68,14 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const divisionLocationIds = removeNullOrUndefined(
     events.map(({ division_location_id }) => division_location_id)
   );
-  const divisionLocations = await searchDivisionLocations(
-    appConfig.TEAMSNAP_CLIENT_ID,
-    {
+  const divisionLocations =
+    await divisionLocationService.searchDivisionLocations({
       ids: divisionLocationIds,
-    }
-  );
+    });
 
   // search event's teams
   const teamIds = removeNullOrUndefined(events.map(({ team_id }) => team_id));
-  const teams = await searchTeams(appConfig.TEAMSNAP_CLIENT_ID, {
-    ids: teamIds,
-  });
+  const teams = await teamSearvice.searchTeams({ ids: teamIds });
 
   return json({
     divisionLocations,

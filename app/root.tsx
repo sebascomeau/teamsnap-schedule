@@ -15,15 +15,12 @@ import {
 } from '@remix-run/react';
 
 import stylesheet from '~/tailwind.css';
-import {
-  getDivisionTree,
-  getRootDivision,
-} from './libs/services/division-service';
-import { getRootDivisionTeams, isTeamAll } from './libs/services/team-service';
+import { DivisionService } from './libs/services/division-service';
+import { isTeamAll, TeamService } from './libs/services/team-service';
 import type { NavItem } from './components/Nav';
 import { useMemo } from 'react';
 import { SiteHeader } from './components/SiteHeader';
-import { config } from './libs/config';
+import { getConfig } from './libs/config';
 
 export const links: LinksFunction = () => [
   { rel: 'stylesheet', href: stylesheet },
@@ -54,28 +51,23 @@ const getBrowserEnvironment = () => {
 };
 
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const appConfig = config();
+  const config = getConfig();
+  const divisionService = DivisionService({ config });
+  const teamSearvice = TeamService({ config, divisionService });
 
   // get root division
-  const rootDivision = await getRootDivision(
-    appConfig.TEAMSNAP_CLIENT_ID,
-    appConfig.TEAMSNAP_ROOT_DIVISION_ID
-  );
+  const rootDivision = await divisionService.getRootDivision();
   if (rootDivision === null) {
     throw new Response('Root Division Not Found', { status: 404 });
   }
 
   // get root division's division tree
-  const rootDivisionTree = await getDivisionTree(
-    appConfig.TEAMSNAP_CLIENT_ID,
+  const rootDivisionTree = await divisionService.getDivisionTree(
     rootDivision.id
   );
 
   // get root division's team
-  const rootDivisionTeams = await getRootDivisionTeams(
-    appConfig.TEAMSNAP_CLIENT_ID,
-    appConfig.TEAMSNAP_ROOT_DIVISION_ID
-  );
+  const rootDivisionTeams = await teamSearvice.getRootDivisionTeams();
 
   return json({
     ENV: getBrowserEnvironment(),

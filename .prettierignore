@@ -1,0 +1,7 @@
+# Add files here to ignore them from prettier formatting
+**/.git
+**/.hg
+**/.svn
+**/node_modules
+/coverage
+/dist

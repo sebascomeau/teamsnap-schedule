@@ -53,21 +53,21 @@ const getBrowserEnvironment = () => {
 export const loader = async ({ params }: LoaderFunctionArgs) => {
   const config = getConfig();
   const divisionService = DivisionService({ config });
-  const teamSearvice = TeamService({ config, divisionService });
+  const teamService = TeamService({ config, divisionService });
 
   // get root division
   const rootDivision = await divisionService.getRootDivision();
   if (rootDivision === null) {
-    throw new Response("Root Division Not Found", { status: 404 });
+    throw json("Root Division Not Found", { status: 404 });
   }
 
   // get root division's division tree
   const rootDivisionTree = await divisionService.getDivisionTree(
-    rootDivision.id
+    rootDivision.id,
   );
 
   // get root division's team
-  const rootDivisionTeams = await teamSearvice.getRootDivisionTeams();
+  const rootDivisionTeams = await teamService.getRootDivisionTeams();
 
   return json({
     ENV: getBrowserEnvironment(),
@@ -87,7 +87,7 @@ export default function App() {
       items: data.rootDivisionTeams
         .filter(({ division_id }) => division_id === id)
         .map((team) => ({
-          href: isTeamAll(team) ? "/" : `/${team.id}`,
+          href: isTeamAll(team) ? "/" : `/teams/${team.id}`,
           title: team.name ?? team.id.toString(),
         })),
       title: name ?? id.toString(),

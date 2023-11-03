@@ -21,47 +21,54 @@ import {
   groupEventsByWeek,
   isGameEvent,
 } from "~/libs/services/event-service";
-import { TeamService, isTeamAll } from "~/libs/services/team-service";
+import { TeamService } from "~/libs/services/team-service";
 
-import { parseDateStringToDate } from "~/libs/utils/date-utils";
+import {
+  getStartAndEndDateFromYearAndWeek,
+  isValidYearAndWeek,
+  parseDateStringToDate,
+} from "~/libs/utils/date-utils";
 import { removeNullOrUndefined } from "~/libs/utils/misc-utils";
 
-export const loader = async ({ params, context }: LoaderFunctionArgs) => {
+export const loader = async ({ params }: LoaderFunctionArgs) => {
+  const year = parseInt(params.year ?? "", 10);
+  const week = parseInt(params.week ?? "", 10);
+
+  console.log({ year, week, valide: isValidYearAndWeek(year, week) });
+
+  if (!isValidYearAndWeek(year, week)) {
+    // not found
+    throw json(`Events Year ${params.year} Week ${params.week} Not Found`, {
+      status: 404,
+    });
+  }
+
+  // get week start and end daate
+  const weekStartAndEnDate = getStartAndEndDateFromYearAndWeek(year, week);
+
+  if (!weekStartAndEnDate) {
+    // not found
+    throw json(`Events Year ${params.year} Week ${params.week} Not Found`, {
+      status: 404,
+    });
+  }
+
   const config = getConfig();
   const divisionService = DivisionService({ config });
   const divisionLocationService = DivisionLocationService({ config });
   const eventService = EventService({ config });
-  const teamSearvice = TeamService({ config, divisionService });
-  const teamAll = teamSearvice.getTeamAll();
+  const teamService = TeamService({ config, divisionService });
+  const team = teamService.getTeamAll();
 
-  // undefined means all teams
-  const team = params.teamId
-    ? await teamSearvice.getTeam(Number.parseInt(params.teamId))
-    : teamAll;
-
-  if (team === null) {
-    // not found
-    throw new Response("Team Not Found", { status: 404 });
-  }
-
-  // Get today's date
-  const today = new Date();
-
-  // Set the time to zero (midnight)
-  today.setHours(0, 0, 0, 0);
-
-  const searchEventsTeamIds =
-    team.id === teamAll.id
-      ? (await teamSearvice.getRootDivisionTeams()).map(({ id }) => id)
-      : [team.id];
+  // get week's events
   const events = await eventService.searchEvents({
-    teamIds: searchEventsTeamIds,
-    startedAfter: today,
+    startedAfter: weekStartAndEnDate.start,
+    startedBefore: weekStartAndEnDate.end,
   });
 
   // search event's division locations
   const divisionLocationIds = removeNullOrUndefined(
-    events.map(({ division_location_id }) => division_location_id)
+    events.map(({ division_location_id }) => division_location_id),
   );
   const divisionLocations =
     await divisionLocationService.searchDivisionLocations({
@@ -70,7 +77,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   // search event's teams
   const teamIds = removeNullOrUndefined(events.map(({ team_id }) => team_id));
-  const teams = await teamSearvice.searchTeams({ ids: teamIds });
+  const teams = await teamService.searchTeams({ ids: teamIds });
 
   return json({
     divisionLocations,
@@ -90,9 +97,7 @@ export default function Events() {
   return (
     <>
       <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-        {isTeamAll(data.team)
-          ? "All Teams Events"
-          : `${data.team.name} Team Events`}
+        {"All Teams Events"}
       </h1>
       <p className="text-lg text-muted-foreground">
         <span className="font-semibold">{data.events.length}</span> upcoming
@@ -109,22 +114,26 @@ export default function Events() {
             </h2>
             {Object.entries(eventsByDay).map(([day, events]) => {
               const parsedDay = parseDateStringToDate(day);
+              if (!parsedDay) return null;
               return (
                 <div key={day}>
-                  {parsedDay && (
-                    <h3 className="flex gap-1 items-center scroll-m-20 text-2xl font-semibold tracking-tight mt-6 mb-4">
-                      <CalendarDays />
-                      <span>{format(parsedDay, "iiii, MMMM do")}</span>
-                    </h3>
-                  )}
+                  <h3 className="flex gap-1 items-center scroll-m-20 text-2xl font-semibold tracking-tight mt-6 mb-4">
+                    <CalendarDays />
+                    <span>{format(parsedDay, "iiii, MMMM do")}</span>
+                  </h3>
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {events.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No event found
+                      </p>
+                    )}
                     {events.map((event) => {
                       const startDate = convertEventStartDate(event);
                       const team = data.teams.find(
-                        ({ id }) => id === event.team_id
+                        ({ id }) => id === event.team_id,
                       );
                       const divisionLocation = data.divisionLocations.find(
-                        ({ id }) => id === event.division_location_id
+                        ({ id }) => id === event.division_location_id,
                       );
                       return (
                         <Card key={event.id}>
@@ -137,7 +146,9 @@ export default function Events() {
                               </span>
                             </CardTitle>
                             <CardDescription className="flex items-center gap-1">
-                              <Link to={`/${team?.id}`}>{team?.name}</Link>
+                              <Link to={`/teams/${team?.id}`}>
+                                {team?.name}
+                              </Link>
                               {isGameEvent(event) && <GameTag />}
                             </CardDescription>
                           </CardHeader>

@@ -1,13 +1,11 @@
 import { cachified } from "cachified";
-import { format, parseISO, startOfWeek } from "date-fns";
-import {
-  lruCache as cache,
-  defaultTtl as ttl,
-} from "../../libs/utils/cache-utils";
+import { addDays, format, parseISO, startOfWeek } from "date-fns";
+import { lruCache as cache, defaultTtl as ttl } from "../utils/cache-utils";
 import type { Config } from "../config";
 import { toEventDTO } from "../mappers/event-mapper";
 import { convertUTCDateStringToTimeZone } from "../utils/date-utils";
 import type { ApiResponse, EventByWeek, EventDTO } from "./types";
+import urlcat from "urlcat";
 
 export interface EventServiceDependencies {
   readonly config: Config;
@@ -26,7 +24,7 @@ export const EventService = (dependencies: EventServiceDependencies) => {
               ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
               ["Accept", "application/vnd.collection+json"],
             ],
-          }
+          },
         );
 
         if (!response.ok) {
@@ -48,24 +46,33 @@ export const EventService = (dependencies: EventServiceDependencies) => {
     ids?: number[];
     teamIds?: number[];
     startedAfter?: Date;
+    startedBefore?: Date;
   }) => {
-    const id = query?.ids?.join(",") ?? "";
-    const teamId = query?.teamIds?.join(",") ?? "";
-    const startedAfter = query?.startedAfter?.toISOString() ?? "";
+    const params = {
+      id: query?.ids?.join(","),
+      team_id: query?.teamIds?.join(","),
+      started_after: query?.startedAfter?.toISOString(),
+      started_before: query?.startedBefore?.toISOString(),
+    };
+
+    const url = urlcat(
+      "https://api.teamsnap.com/",
+      "/v3/events/search",
+      params,
+    );
+
+    console.log({ url });
 
     return cachified({
-      key: `searchEvents-${id}-${teamId}-${startedAfter}`,
+      key: url,
       cache,
       getFreshValue: async () => {
-        const response = await fetch(
-          `https://api.teamsnap.com/v3/events/search?id=${id}&team_id=${teamId}&started_after=${startedAfter}`,
-          {
-            headers: [
-              ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
-              ["Accept", "application/vnd.collection+json"],
-            ],
-          }
-        );
+        const response = await fetch(url, {
+          headers: [
+            ["X-Teamsnap-Client-Id", dependencies.config.TEAMSNAP_CLIENT_ID],
+            ["Accept", "application/vnd.collection+json"],
+          ],
+        });
 
         if (!response.ok) {
           return [];
@@ -100,7 +107,7 @@ export const convertEventStartDate = (event: EventDTO) => {
   if (event.time_zone_iana_name) {
     return convertUTCDateStringToTimeZone(
       event.start_date,
-      event.time_zone_iana_name
+      event.time_zone_iana_name,
     );
   }
 
@@ -115,7 +122,6 @@ export const convertEventStartDate = (event: EventDTO) => {
 export const groupEventsByWeek = (events: EventDTO[]) => {
   const eventsByWeek: EventByWeek = {};
 
-  // Group events by week, then by day within each week
   events.forEach((event) => {
     const startDate = convertEventStartDate(event);
     if (startDate) {
@@ -125,11 +131,17 @@ export const groupEventsByWeek = (events: EventDTO[]) => {
         eventsByWeek[weekStartDateString] = {};
       }
 
-      const day = format(startDate, "yyyy-MM-dd");
-      if (!eventsByWeek[weekStartDateString][day]) {
-        eventsByWeek[weekStartDateString][day] = [];
+      let currentDay = new Date(weekStart); // Initialize to the start of the week
+      for (let i = 0; i < 7; i++) {
+        // Loop through each day of the week
+        const dayString = format(currentDay, "yyyy-MM-dd");
+        if (!eventsByWeek[weekStartDateString][dayString]) {
+          eventsByWeek[weekStartDateString][dayString] = [];
+        }
+        currentDay = addDays(currentDay, 1); // Move to the next day
       }
 
+      const day = format(startDate, "yyyy-MM-dd");
       eventsByWeek[weekStartDateString][day].push(event);
     }
   });
